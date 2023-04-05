@@ -1,32 +1,65 @@
-// assigner les broches des moteurs
+// assigner les broches
 int motorA = 2;
 int motorB = 3;
-
+const int pinX = A0;
+const int pinY = A1;
+const int pinBouton = 9;
 
 void setup() {
-  // initialisation des broches de sortie
+  // initialisation des broches
   pinMode(motorA, OUTPUT);
   pinMode(motorB, OUTPUT);
+  pinMode(pinBouton , INPUT_PULLUP);   //on active la résistance pull up 
+  Serial.begin(9600);
+  digitalWrite(motorA, LOW);
+  digitalWrite(motorB, LOW);
 }
 
 void loop() {
-  // avancer
-  digitalWrite(motorA, HIGH);
-  digitalWrite(motorB, HIGH);
-  delay(2000);
+int X = 0;
+   int Y = 0;
+   bool boutonValeur = false;
+ 
+   //on lit les valeurs
+   X = analogRead(pinX);
+   /*il est nécessaire de faire un pause entre les lectures des différents
+   pins analogiques  si on veut éviter l'obtention double de la même
+   lecture (dû au fonctionnement interne des pins) */
+   delay(100);
+   Y = analogRead(pinY);
+   boutonValeur = digitalRead(pinBouton);
+ 
+   //montrer les valeurs à l'écran
+   Serial.print("X:" );
+   Serial.print(X);
+   Serial.print(" | Y: ");
+   Serial.print(Y);
+   Serial.print(" | Pulsateur: ");
+   Serial.println(boutonValeur);
+   delay(1000);
+   
+// avancer
+  if (Y<0) {
+    digitalWrite(motorA, HIGH);
+    digitalWrite(motorB, HIGH);
+    delay(500);
+  }
+// tourner à gauche
+  if (X<0) {
+    digitalWrite(motorA, LOW);
+    digitalWrite(motorB, HIGH);
+    delay(500);
+  }
 
-  // tourner à gauche
-  digitalWrite(motorA, LOW);
-  digitalWrite(motorB, HIGH);
-  delay(1000);
-
-  // Stop
+// Stop
   digitalWrite(motorA, LOW);
   digitalWrite(motorB, LOW);
-  delay(2000);
-
-  // tourner à droite
-  digitalWrite(motorA, HIGH);
-  digitalWrite(motorB, LOW);
-  delay(1000);
+  delay(500);
+  
+// tourner à droite
+  if (X>0) {
+    digitalWrite(motorA, HIGH);
+    digitalWrite(motorB, LOW);
+    delay(500);
+  }
 }
