@@ -2,17 +2,11 @@
 int motorA = 2;
 int motorB = 3;
 
-// assigner la broche de la roue libre
-int freeWheel = 6;
 
 void setup() {
   // initialisation des broches de sortie
   pinMode(motorA, OUTPUT);
   pinMode(motorB, OUTPUT);
-  pinMode(freeWheel, OUTPUT);
-
-  // mettre la roue libre à l'arrêt
-  digitalWrite(freeWheel, LOW);
 }
 
 void loop() {
