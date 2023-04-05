@@ -1,120 +1,50 @@
-#include <Servo.h>
+// assigner les broches des moteurs
+int motor1A = 2;
+int motor1B = 3;
+int motor2A = 4;
+int motor2B = 5;
 
-#define AVANT 1
-#define ARRIERE 0
-#define GAUCHE 2
-#define DROITE 3
+// assigner la broche de la roue libre
+int freeWheel = 6;
 
-#define SERVOG 1
-#define SERVOD 0
+void setup() {
+  // initialisation des broches de sortie
+  pinMode(motor1A, OUTPUT);
+  pinMode(motor1B, OUTPUT);
+  pinMode(motor2A, OUTPUT);
+  pinMode(motor2B, OUTPUT);
+  pinMode(freeWheel, OUTPUT);
 
-#define UPDDG 3
-#define UPDDD 4
-
-#define SHARP 4
-
-#define VMAX 5
-
-Servo servog;
-Servo servod;
-
-int vLdr = 5;
-
-int getNeutral(int s)
-{
-if(s == SERVOG)
-return 86;
-else
-return 84;
+  // mettre la roue libre à l'arrêt
+  digitalWrite(freeWheel, LOW);
 }
 
+void loop() {
+  // avancer
+  digitalWrite(motor1A, HIGH);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, HIGH);
+  digitalWrite(motor2B, LOW);
+  delay(2000);
 
-void handleS(int s, int speed)
-{
-//Vitesse :
-// 0 -> 0; 1 -> 1; 2 -> 3; 3 -> 8; 4 -> 10; v => 5 -> 30
-int tab[6] = {0,1,3,8,10,30};
-int pos = getNeutral(s);
+  // tourner à gauche
+  digitalWrite(motor1A, LOW);
+  digitalWrite(motor1B, HIGH);
+  digitalWrite(motor2A, HIGH);
+  digitalWrite(motor2B, LOW);
+  delay(1000);
 
-int acc;
-if (speed < 0)
-acc = - tab[abs(speed)];
-else
-acc = tab[speed];
+  // avancer
+  digitalWrite(motor1A, HIGH);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, HIGH);
+  digitalWrite(motor2B, LOW);
+  delay(2000);
 
-if(s == SERVOG)
-servog.write(pos += acc);
-else
-servod.write(pos -= acc);
-}
-
-
-void move(int direction)
-{
-int m1 = 0, m2 = 0;
-switch(direction)
-{
-case DROITE: m1 = 1; m2 = -1; break;
-case GAUCHE: m1 = -1; m2 = 1; break;
-case AVANT: m1 = 1; m2 = 1; break;
-case ARRIERE: m1 = -1; m2 = -1; break;
-}
-handleS(SERVOG, m1*VMAX);
-handleS(SERVOD, m2*VMAX);
-}
-
-void handleUPDD(int updd)
-{
-if(digitalRead(updd) == HIGH)
-{
-move(ARRIERE);
-delay(500);
-
-if (updd == UPDDG)
-{
-move(DROITE);
-}
-else
-{
-move(GAUCHE);
-}
-delay(800);
-}
-}
-
-void sharp()
-{
-int v = analogRead(SHARP);
-if (v >= 180)
-{
-move(ARRIERE);
-delay(300);
-move(DROITE);
-delay(900);
-}
-else if (v >= 100)
-{
-handleS(SERVOG, VMAX);
-handleS(SERVOD, 0);
-delay(1500);
-}
-}
-void setup()
-{
-pinMode(UPDDG, INPUT);
-pinMode(UPDDD, INPUT);
-
-Serial.begin(9600);
-servog.attach(10);
-servod.attach(9);
-move(AVANT);
-}
-
-void loop()
-{
-handleUPDD(UPDDG);
-handleUPDD(UPDDD);
-sharp();
-move(AVANT);
-delay(100);
+  // tourner à droite
+  digitalWrite(motor1A, HIGH);
+  digitalWrite(motor1B, LOW);
+  digitalWrite(motor2A, LOW);
+  digitalWrite(motor2B, HIGH);
+  delay(1000);
 }
