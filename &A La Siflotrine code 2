@@ -1,0 +1,62 @@
+// Déclaration des pins du joystick
+const int VRx = A0;
+const int VRy = A1;
+
+// Déclaration des variables de vitesse et de direction
+int speedA = 0;
+int speedB = 0;
+int directionA = 0;
+int directionB = 0;
+
+void setup()
+{
+// Initialisation des pins du joystick
+  pinMode(VRx, INPUT);
+  pinMode(VRy, INPUT);
+
+// Configuration de la vitesse maximale des moteurs
+  analogWrite(ENA, 0);
+  analogWrite(ENB, 0);
+}
+
+void loop()
+{
+ // Lecture des valeurs du joystick
+  int xValue = analogRead(VRx);
+  int yValue = analogRead(VRy);
+
+  // Conversion des valeurs du joystick en vitesse et direction des moteurs
+  speedA = map(yValue, 0, 1023, 0, 255);
+  speedB = map(yValue, 0, 1023, 0, 255);
+  directionA = map(xValue, 0, 1023, -255, 255);
+  directionB = map(xValue, 0, 1023, 255, -255);
+
+  // Contrôle des moteurs en fonction de la direction et de la vitesse
+  if (speedA > 0) {
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    analogWrite(ENA, speedA);
+  } else if (speedA < 0) {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    analogWrite(ENA, -speedA);
+  } else {
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    analogWrite(ENA, 0);
+  }
+
+  if (speedB > 0) {
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENB, speedB);
+  } else if (speedB < 0) {
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    analogWrite(ENB, -speedB);
+  } else {
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, LOW);
+    analogWrite(ENB, 0);
+  }
+}
