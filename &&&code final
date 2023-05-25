@@ -1,0 +1,97 @@
+// Définition des broches analogique
+#define JOYSTICK_X A0 // X -> droite / gauche
+#define JOYSTICK_Y A1 // Y -> vitesse / direction
+ 
+// Définition des états des moteurs
+#define MOTEUR_STOP 0
+#define MOTEUR_AVANCE 1
+#define MOTEUR_RECULE 2
+ 
+// Définition de la marge autour du point d'origine (0, 0)
+// Permet d'éviter que les moteurs n'oscille entre MOTEUR_AVANCE et MOTEUR_RECULE
+#define THRESHOLD 20
+ 
+// Définition de la valeur maximum pour la vitesse
+#define MAX_SPEED 127
+ 
+// Variables global
+// calX : calibration en 0 de l'axe X
+// calY : calibration en 0 de l'axe Y
+// vitesse : vitesse calculé
+// direction : direction calculé
+int calX, calY, vitesse, direction;
+// coefG : coefficient de vitesse (entre 0 et 1) pour le moteur gauche
+// coefD : coefficient de vitesse (entre 0 et 1) pour le moteur droit
+float coefG, coefD;
+ 
+// setup()
+void setup() {
+  // Initialisation du port série
+  Serial.begin(115200);
+ 
+  // Calibration de la valeur (0, 0) du joystick
+  calX = analogRead(JOYSTICK_X);
+  calY = analogRead(JOYSTICK_Y);
+}
+ 
+// loop()
+void loop() {
+  // Calcul des données
+  getData(calX, calY, &coefG, &coefD, &vitesse, &direction);
+ 
+  // Affichage de la vitesse du moteur gauche
+  Serial.print("Moteur Gauche : ");
+  Serial.println((int)(vitesse * coefG));
+   
+  // Affichage de la vitesse du moteur droit
+  Serial.print("Moteur Droit : ");
+  Serial.println((int)(vitesse * coefD));
+ 
+  // Affichage de la direction des moteurs
+  Serial.print("Direction : ");
+  if(direction == MOTEUR_AVANCE) // Vers l'avant
+    Serial.println("AVANT");
+  else if(direction == MOTEUR_RECULE) // Vers l'arriére
+    Serial.println("ARRIERE");
+  else
+    Serial.println("ARRET"); // Aucun mouvement
+ 
+  // Delai de 500ms pour pouvoir lire la console
+  delay(500);
+}
+ 
+// Fonction calculant les divers coefficient de vitesse, la direction, ainsi que la vitesse
+void getData(int calX, int calY, float *coefG, float *coefD, int *vitesse, int *direction) {
+  // rawX : valeur brute en X du joystick centrée sur calX
+  // rawY : valeur brute en Y du joystick centrée sur calY
+  int rawX, rawY;
+   
+  // Mesure des valeurs brute en X et Y
+  rawX = analogRead(JOYSTICK_X) - calX;
+  rawY = analogRead(JOYSTICK_Y) - calY;
+ 
+  // Si -THRESHOLD < rawY < THRESHOLD
+  if(rawY > -THRESHOLD && rawY < THRESHOLD){
+    // Les moteurs sont marqués comme arrétés, et vitesse = 0
+    *direction = MOTEUR_STOP;
+    *vitesse = 0;
+  }  // Si rawY >= 0
+  else if(rawY >= 0) {
+    // Les moteurs sont marqués en mode "recule"
+    *direction = MOTEUR_RECULE;
+    // La vitesse est égale à map(rawY) depuis 0 ~ (1023 - calY) vers 0 ~ MAX_SPEED
+    *vitesse = map(rawY, 0, 1023 - calY, 0, MAX_SPEED);
+  } // Si rawY < 0
+  else {
+    // Les moteurs sont marqués en mode "recule"
+    *direction = MOTEUR_AVANCE;
+    // La vitesse est égale à map(rawY) depuis 0 ~ calY vers 0 ~ MAX_SPEED
+    *vitesse = map(-rawY, 0, calY, 0, MAX_SPEED);
+  }
+ 
+  // Si rawX < -THRESHOLD alors coefG = -rawX / calX sinon coefG = 1
+  *coefG = (rawX < -THRESHOLD) ? -rawX / (float)calX : 1;
+   
+  // Si rawX > THRESHOLD alors coefD = rawX / calX sinon coefD = 1
+  *coefD = (rawX > THRESHOLD) ? rawX / (float)calX : 1;
+}
