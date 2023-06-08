@@ -1,0 +1,81 @@
+// Définition des broches analogiques
+#define JOYSTICK_X A0 // X -> droite / gauche
+#define JOYSTICK_Y A1 // Y -> vitesse / direction
+
+// Définition des broches de contrôle des moteurs pour le L293D
+#define ENA 2 // Broche Enable pour le moteur gauche
+#define IN1 3 // Broche IN1 pour le moteur gauche
+#define IN2 4 // Broche IN2 pour le moteur gauche
+#define ENB 6 // Broche Enable pour le moteur droit
+#define IN3 7 // Broche IN3 pour le moteur droit
+#define IN4 8 // Broche IN4 pour le moteur droit
+
+// Définition des états des moteurs
+#define MOTEUR_STOP 0
+#define MOTEUR_AVANCE 1
+#define MOTEUR_RECULE 2
+
+// Définition de la marge autour du point d'origine (0, 0)
+// Permet d'éviter que les moteurs n'oscillent entre MOTEUR_AVANCE et MOTEUR_RECULE
+#define THRESHOLD 20
+
+// Définition de la valeur maximum pour la vitesse
+#define MAX_SPEED 127
+
+// Variables globales
+int calX, calY, vitesse, direction;
+float coefG, coefD;
+
+// setup()
+void setup() {
+  // Initialisation du port série
+  Serial.begin(115200);
+
+  // Calibration de la valeur (0, 0) du joystick
+  calX = analogRead(JOYSTICK_X);
+  calY = analogRead(JOYSTICK_Y);
+
+  // Initialisation des broches de contrôle des moteurs
+  pinMode(ENA, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(ENB, OUTPUT);
+  pinMode(IN3, OUTPUT);
+  pinMode(IN4, OUTPUT);
+}
+
+// loop()
+void loop() {
+  // Calcul des données
+  getData(calX, calY, &coefG, &coefD, &vitesse, &direction);
+
+  // Contrôle des moteurs
+  controlMotors();
+
+  // Affichage des informations dans la console série
+  printMotorInfo();
+
+  // Délai de 500ms pour pouvoir lire la console
+  delay(500);
+}
+
+// Fonction calculant les divers coefficients de vitesse, la direction, ainsi que la vitesse
+void getData(int calX, int calY, float *coefG, float *coefD, int *vitesse, int *direction) {
+  int rawX, rawY;
+
+  // Mesure des valeurs brutes en X et Y
+  rawX = analogRead(JOYSTICK_X) - calX;
+  rawY = analogRead(JOYSTICK_Y) - calY;
+
+  if (rawY > -THRESHOLD && rawY < THRESHOLD) {
+    *direction = MOTEUR_STOP;
+    *vitesse = 0;
+  } else if (rawY >= 0) {
+    *direction = MOTEUR_RECULE;
+    *vitesse = map(rawY, 0, 1023 - calY, 0, MAX_SPEED);
+  } else {
+    *direction = MOTEUR_AVANCE;
+    *vitesse = map(-rawY, 0, calY, 0, MAX_SPEED);
+  }
+
+  *coefG = (rawX < -THRESHOLD) ? -rawX / (float)cal
